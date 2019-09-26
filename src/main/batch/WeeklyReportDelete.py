@@ -6,6 +6,7 @@
 '''
 import sys
 from src.main.batch.base.BaseBatch import BaseBatch
+from src.main.batch.logic.weekly_report.WeeklyReportDeleteLogic import WeeklyReportDeleteLogic
 
 class WeeklyReportDelete(BaseBatch):
 

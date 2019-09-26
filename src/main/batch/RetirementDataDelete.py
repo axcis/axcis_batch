@@ -6,6 +6,7 @@
 '''
 import sys
 from src.main.batch.base.BaseBatch import BaseBatch
+from src.main.batch.logic.retirement.RetirementDataDeleteLogic import RetirementDataDeleteLogic
 
 class RetirementDataDelete(BaseBatch):
 

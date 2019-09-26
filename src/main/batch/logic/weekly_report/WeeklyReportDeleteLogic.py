@@ -4,11 +4,15 @@
 
 @author: takanori_gozu
 '''
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from src.main.batch.base.BaseLogic import BaseLogic
+from src.main.batch.dao.WeeklyReportDao import WeeklyReportDao
+from src.main.batch.lib.string.StringOperation import StringOperation
 
 class WeeklyReportDeleteLogic(BaseLogic):
 
-   '''
+    '''
     コンストラクタ
     '''
     def __init__(self, db, logger, form):
