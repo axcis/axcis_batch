@@ -64,7 +64,7 @@ class CostManageDeleteLogic(BaseLogic):
     def getDeleteTarget(self, dt):
         dao = ExpensesDao(self.db)
 
-        dao.addSelectAs('left(regist_ymd, 7)', 'ym')
+        dao.addSelectAs(ExpensesDao.COL_REGIST_YM, 'ym')
         dao.addWhereStr(ExpensesDao.COL_REGIST_YM, dt, ExpensesDao.COMP_LESS)
         dao.addGroupBy('ym')
 
