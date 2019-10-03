@@ -12,6 +12,7 @@ class EmployeeDao(BaseDao):
 
     COL_ID = 'id'
     COL_NAME = 'name'
+    COL_HIRAGANA = 'hiragana'
     COL_LOGIN_ID = 'login_id'
     COL_PASSWORD = 'password'
     COL_EMAIL_ADDRESS = 'email_address'
