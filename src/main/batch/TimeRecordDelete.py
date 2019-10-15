@@ -6,7 +6,7 @@
 '''
 import sys
 from src.main.batch.base.BaseBatch import BaseBatch
-from src.main.batch.logic.time_record.TimeRecordDelete import TimeRecordDeleteLogic
+from src.main.batch.logic.time_record.TimeRecordDeleteLogic import TimeRecordDeleteLogic
 
 class TimeRecordDelete(BaseBatch):
 
