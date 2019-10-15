@@ -52,5 +52,5 @@ class ConferenceAppointDeleteLogic(BaseLogic):
         bdt = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
 
         #文字列で返す
-        return StringOperation.toString((bdt - relativedelta(years=3)).date())
+        return StringOperation.toString((bdt - relativedelta(months=3)).date())
 
