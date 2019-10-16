@@ -34,6 +34,7 @@ class DbManager:
     '''
     def connect(self):
         self.conn = mysql.connector.connect(user=self.dbUser, password=self.dbPassword, host=self.dbHost, database=self.dbSchema)
+        self.conn.autocommit = False
         self.st = self.conn.cursor(dictionary=True)
 
     '''
@@ -64,7 +65,7 @@ class DbManager:
         return "'" + val + "'"
 
     '''
-    トランザクション
+    コミット
     '''
     def commit(self):
         self.conn.commit()
