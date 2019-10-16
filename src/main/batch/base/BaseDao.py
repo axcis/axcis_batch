@@ -120,6 +120,13 @@ class BaseDao(object):
         result = self.doSelect()
         return Collection.toStringList(result, col)
 
+    '''
+    doSelectColの1件取得Ver
+    '''
+    def doSelectColInfo(self, col):
+        result = self.doSelectCol(col)
+        return result[0]
+
     def makeSelectStatement(self):
         sql = 'SELECT'
         if len(self.select) == 0:
@@ -247,17 +254,17 @@ class BaseDao(object):
     '''
     insert
     '''
-    def doInsert(self):
+    def doInsert(self, autoCommit = True):
         sql = self.makeInsertStatement()
 
-        self.db.execute(sql)
+        self.db.execute(sql, autoCommit)
 
         return self.db.getLastInsertId()
 
     def makeInsertStatement(self):
         sql = 'INSERT INTO ' + self.table + '('
 
-        keys = self.colValMap.keys()
+        keys = list(self.colValMap.keys())
         for i in range(len(keys)):
             if i > 0:
                 sql += ', '
@@ -265,7 +272,7 @@ class BaseDao(object):
 
         sql += ') VALUES ('
 
-        values = self.colValMap.values()
+        values = list(self.colValMap.values())
         for i in range(len(values)):
             if i > 0:
                 sql += ', '
@@ -278,18 +285,18 @@ class BaseDao(object):
     '''
     update
     '''
-    def doUpdate(self):
+    def doUpdate(self, autoCommit = True):
         sql = self.makeUpdateStatement()
 
         if len(self.where) > 0:
             sql += self.makeWhereStatement()
 
-        self.db.execute(sql)
+        self.db.execute(sql, autoCommit)
 
     def makeUpdateStatement(self):
         sql = 'UPDATE ' + self.table + ' SET '
 
-        keys = self.colValMap.keys()
+        keys = list(self.colValMap.keys())
         for i in range(len(keys)):
             if i > 0:
                 sql += ', '
@@ -300,13 +307,13 @@ class BaseDao(object):
     '''
     delete
     '''
-    def doDelete(self):
+    def doDelete(self, autoCommit = True):
         sql = self.makeDeleteStatement()
 
         if len(self.where) > 0:
             sql += self.makeWhereStatement()
 
-        self.db.execute(sql)
+        self.db.execute(sql, autoCommit)
 
     def makeDeleteStatement(self):
         sql = 'DELETE FROM ' + self.table

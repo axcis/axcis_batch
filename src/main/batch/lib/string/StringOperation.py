@@ -5,6 +5,7 @@ StringOperation
 
 @author: takanori_gozu
 '''
+from datetime import datetime
 
 class StringOperation:
 
@@ -35,3 +36,10 @@ class StringOperation:
     @staticmethod
     def toString(obj):
         return str(obj)
+
+    '''
+    文字列型日付をDatetime型日付に変換して返す
+    '''
+    @staticmethod
+    def toDateTimeDate(date):
+        return datetime.strptime(date, '%Y-%m-%d')

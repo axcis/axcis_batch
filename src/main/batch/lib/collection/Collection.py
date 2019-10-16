@@ -19,3 +19,16 @@ class Collection:
             newList.append(select[i][col])
 
         return newList
+
+    '''
+    key => valueのMap生成
+    '''
+    @staticmethod
+    def toMap(select, key = 'id', value = 'name'):
+        newMap = {}
+        for i in range(len(select)):
+            mapKey = select[i][key]
+            mapValue = select[i][value]
+            newMap[mapKey] = mapValue
+
+        return newMap
