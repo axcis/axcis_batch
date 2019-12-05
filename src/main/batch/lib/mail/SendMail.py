@@ -6,7 +6,11 @@ SendMail
 @author: takanori_gozu
 '''
 import smtplib
+from os.path import basename
+from email import utils
+from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from src.main.batch.base.Config import Config
 from src.main.batch.lib.string.StringOperation import StringOperation
 
@@ -21,6 +25,7 @@ class SendMail:
     mailCc = None
     mailSubject = None
     mailText = None
+    mailAttach = []
 
     smtp = None
 
@@ -45,6 +50,7 @@ class SendMail:
         self.mailCc = None
         self.mailSubject = None
         self.mailText = None
+        self.mailAttach = []
 
     '''
     送信者
@@ -83,6 +89,12 @@ class SendMail:
         self.mailText = mailText
 
     '''
+    添付ファイル
+    '''
+    def setAttach(self, path):
+        self.mailAttach.append(path)
+
+    '''
     エラーメールの本文
     '''
     def setErrMailText(self, appName, e):
@@ -94,10 +106,32 @@ class SendMail:
     送信
     '''
     def send(self):
-        msg = MIMEText(self.mailText.encode(self.charset), 'plain', self.charset)
-        msg['Subject'] = self.mailSubject
-        msg['From'] = self.mailFrom
-        msg['To'] = self.mailTo
+        self.message = MIMEMultipart()
+        self.message['To'] = self.mailTo
+        self.message['From'] = self.mailFrom
+        self.message['Subject'] = self.mailSubject
+        self.message['Date'] = utils.formatdate(localtime=True)
+        self.message['Message-ID'] = utils.make_msgid()
 
-        self.smtp.sendmail(self.mailFrom, self.mailTo, msg.as_string())
+        body = MIMEText(self.mailText.encode(self.charset), 'plain', self.charset)
+        self.message.attach(body)
+
+        for filePath in self.mailAttach:
+            self.message.attach(self.attachment(filePath))
+
+        self.smtp.sendmail(self.mailFrom, self.mailTo, self.message.as_string())
         self.smtp.close()
+
+
+    '''
+    添付ファイルの追加
+    '''
+    def attachment(self, path):
+
+        # ファイルを添付
+        with open(path, "rb") as f:
+            part = MIMEApplication(f.read(), Name=basename(path))
+
+        part['Content-Disposition'] = 'attachment; filename="%s"' % basename(path)
+
+        return part

@@ -31,6 +31,20 @@ class StringOperation:
         return text[start-1:start+length-1]
 
     '''
+    trim関数
+    '''
+    @staticmethod
+    def trim(text):
+        return text.strip()
+
+    '''
+    文字列置換関数
+    '''
+    @staticmethod
+    def replace(text, before, after):
+        return text.replace(before, after)
+
+    '''
     文字列に変換して返す
     '''
     @staticmethod
