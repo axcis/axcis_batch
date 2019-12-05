@@ -58,6 +58,8 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         #ループ
         for id, name in employeeMap.items():
 
+            self.writeLog('処理対象社員名 : ' + name)
+
             #勤怠データを取得
             timeRecordMaplist = self.getTimeRecordMapList(id, dt, date, holidayList)
             totalList = self.getTotalList(id, dt, date)
