@@ -70,7 +70,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         self.makeZipFile()
 
         #メールで送信する
-        self.sendTimeSheet(dt)
+#         self.sendTimeSheet(dt)
 
         self.writeLog('処理完了')
 
@@ -426,6 +426,11 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         excel.setCellWidth('K', 7)
         excel.setCellWidth('L', 8)
         excel.setCellWidth('M', 20)
+
+        #行高
+        excel.setRowHeight(5, 30)
+        for i in range(6, lastRow + 2):
+            excel.setRowHeight(i, 15)
 
         #着色
         excel.changeCellBackColorMulti('A5:M5', 'FFFF00')
