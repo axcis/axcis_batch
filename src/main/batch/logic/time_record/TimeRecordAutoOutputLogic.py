@@ -70,7 +70,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         self.makeZipFile()
 
         #メールで送信する
-#         self.sendTimeSheet(dt)
+        self.sendTimeSheet(dt)
 
         self.writeLog('処理完了')
 
