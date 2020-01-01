@@ -20,6 +20,7 @@ from src.main.batch.dao.HolidayDao import HolidayDao
 from src.main.batch.dao.TimeRecordDao import TimeRecordDao
 from src.main.batch.lib.excel.PythonExcel import PythonExcel
 from src.main.batch.lib.collection.Collection import Collection
+from _decimal import Decimal
 
 class TimeRecordAutoOutputLogic(BaseLogic):
 
@@ -226,13 +227,13 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         h, m = divmod(timeInt, 60)
 
         if m >= 0 and m < 15:
-            m = 0
+            m = Decimal(0)
         elif m >= 15 and m < 30:
-            m = 0.25
+            m = Decimal(0.25)
         elif m >= 30 and m < 45:
-            m = 0.5
+            m = Decimal(0.5)
         else:
-            m = 0.75
+            m = Decimal(0.75)
 
         return '{:.2f}'.format(h + m) + 'h'
 
