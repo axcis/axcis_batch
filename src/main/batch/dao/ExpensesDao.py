@@ -17,6 +17,7 @@ class ExpensesDao(BaseDao):
     COL_INPUT_TYPE = 'input_type'
     COL_PAY_TYPE = 'pay_type'
     COL_EXPENSES_TYPE = 'expenses_type'
+    COL_ROUND_TRIP_TYPE = 'round_trip_type'
     COL_TRANSPORT = 'transport'
     COL_FROM_PLACE = 'from_place'
     COL_TO_PLACE = 'to_place'
