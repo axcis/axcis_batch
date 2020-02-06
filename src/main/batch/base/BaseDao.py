@@ -259,6 +259,11 @@ class BaseDao(object):
 
         self.db.execute(sql, autoCommit)
 
+    def doInsertGetId(self, autoCommit = True):
+        sql = self.makeInsertStatement()
+
+        self.db.execute(sql, autoCommit)
+
         return self.db.getLastInsertId()
 
     def makeInsertStatement(self):
