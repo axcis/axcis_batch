@@ -52,6 +52,11 @@ class DbManager:
         if autoCommit == True:
             self.conn.commit()
 
+    def executeBulk(self, sql, values, autoCommit = True):
+        self.st.executemany(sql, values)
+        if autoCommit == True:
+            self.conn.commit()
+
     '''
     lastInsertId
     '''
