@@ -36,6 +36,7 @@ class BaseDao(object):
     group = []
     limit = 0
     colValMap = {}
+    bulkCol = []
 
     '''
      コンストラクタ
@@ -58,6 +59,7 @@ class BaseDao(object):
         self.group = []
         self.limit = 0
         self.colValMap = {}
+        self.bulkCol = []
 
     '''
     select
@@ -252,6 +254,12 @@ class BaseDao(object):
         self.colValMap[col] = self.db.quote(val)
 
     '''
+    bulk_key
+    '''
+    def addBulkCol(self, col):
+        self.bulkCol.append(col)
+
+    '''
     insert
     '''
     def doInsert(self, autoCommit = True):
@@ -284,6 +292,36 @@ class BaseDao(object):
             sql += StringOperation.toString(values[i])
 
         sql += ');'
+
+        return sql
+
+    '''
+    bulkInsert
+    '''
+    def doBulkInsert(self, values, autoCommit = True):
+        sql = self.makeBulkInsertStatement()
+
+        self.db.executeBulk(sql, values, autoCommit)
+
+    def makeBulkInsertStatement(self):
+        sql = 'INSERT INTO ' + self.table + '('
+
+        colCount = 0
+
+        for i in range(len(self.bulkCol)):
+            if i > 0:
+                sql += ', '
+            sql += self.bulkCol[i]
+            colCount += 1
+
+        sql += ') VALUES ('
+
+        for i in range(colCount):
+            if i > 0:
+                sql += ', '
+            sql += '%s'
+
+        sql += ')'
 
         return sql
 
