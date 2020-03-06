@@ -152,12 +152,12 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         for x in range(lastday):
 
             weekday = hi.weekday()
-            day = int(str(hi.date()).split('-')[2]);
+            day = int(StringOperation.toString(hi.date()).split('-')[2]);
 
-            if str(hi.date()) in holidayList:
+            if StringOperation.toString(hi.date()) in holidayList:
                 weekday = 7
 
-            baseMap[str(hi.date())] = [day, self.weekdayList[weekday], '', '', '', '', '', '', '', '', '', '', '']
+            baseMap[StringOperation.toString(hi.date())] = [day, self.weekdayList[weekday], '', '', '', '', '', '', '', '', '', '', '']
             hi = hi + relativedelta(days=1)
 
         return baseMap
@@ -192,7 +192,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         select = dao.doSelect()
 
         for i in range(len(select)):
-            key = str(select[i][TimeRecordDao.COL_WORK_DATE])
+            key = StringOperation.toString(select[i][TimeRecordDao.COL_WORK_DATE])
             clsVal = self.classMap[select[i][TimeRecordDao.COL_CLASSIFICATION]]
             startTime = self.intToHM(select[i][TimeRecordDao.COL_START_TIME])
             endTime = self.intToHM(select[i][TimeRecordDao.COL_END_TIME])
@@ -216,7 +216,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         if timeInt == None: return None
         h, m = divmod(timeInt, 60)
 
-        return str(h) + ':' + str(m).zfill(2)
+        return StringOperation.toString(h) + ':' + StringOperation.toString(m).zfill(2)
 
     '''
     時間のフォーマット変換(Int→0.00h)
@@ -264,7 +264,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         dao.addSelectSumAs(TimeRecordDao.COL_MIDNIGHT_OVER_WORK_TIME, 'total_midnight_over_work_time')
         dao.addSelectSumAs(TimeRecordDao.COL_WORK_TIME, 'total_work_time')
 
-        dao.addWhere(TimeRecordDao.COL_EMPLOYEE_ID, str(employeeId))
+        dao.addWhere(TimeRecordDao.COL_EMPLOYEE_ID, StringOperation.toString(employeeId))
         dao.addWhereStr(TimeRecordDao.COL_WORK_DATE, fromDt, TimeRecordDao.COMP_GREATER_EQUAL)
         dao.addWhereStr(TimeRecordDao.COL_WORK_DATE, toDt, TimeRecordDao.COMP_LESS)
         dao.addWhereIn(TimeRecordDao.COL_SCENE, [1,3]) #共通と本社用のみ取得してくる
@@ -279,7 +279,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         y = int(dt.split('-')[0])
         m = int(dt.split('-')[1])
 
-        ym = str(y) + '年' + str(m) + '月'
+        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
         name = StringOperation.replace(name, " ", "")
 
         excel = PythonExcel()
@@ -392,10 +392,10 @@ class TimeRecordAutoOutputLogic(BaseLogic):
 
         #実出勤日数、就業時間数
         excel.setValueR1C1(10, row, '実出勤日数')
-        excel.setValueR1C1(12, row, '=COUNTA(E6:E' + str(lastRow) + ') & "日"')
+        excel.setValueR1C1(12, row, '=COUNTA(E6:E' + StringOperation.toString(lastRow) + ') & "日"')
         row+=1
         excel.setValueR1C1(10, row, '就業時間数')
-        excel.setValueR1C1(12, row, '=L' + str(lastRow + 1))
+        excel.setValueR1C1(12, row, '=L' + StringOperation.toString(lastRow + 1))
 
         #連絡欄
         row+=2
@@ -435,41 +435,41 @@ class TimeRecordAutoOutputLogic(BaseLogic):
 
         #着色
         excel.changeCellBackColorMulti('A5:M5', 'FFFF00')
-        excel.changeCellBackColorMulti('D6:E' + str(lastRow - 1), '00FFFF')
-        excel.changeCellBackColorMulti('G6:L' + str(lastRow - 1), '00FFFF')
+        excel.changeCellBackColorMulti('D6:E' + StringOperation.toString(lastRow - 1), '00FFFF')
+        excel.changeCellBackColorMulti('G6:L' + StringOperation.toString(lastRow - 1), '00FFFF')
 
         #結合
         excel.mergeCell('A1:M1') #タイトル
         excel.mergeCell('A4:C4') #年月
         excel.mergeCell('L4:M4') #氏名
-        excel.mergeCell('A' + str(lastRow) + ':E' + str(lastRow)) #合計
-        excel.mergeCell('A' + str(lastRow + 1) + ':E' + str(lastRow + 1)) #総時間
-        excel.mergeCell('J' + str(lastRow + 3) + ':K' + str(lastRow + 3)) #実出勤日数
-        excel.mergeCell('L' + str(lastRow + 3) + ':M' + str(lastRow + 3))
-        excel.mergeCell('J' + str(lastRow + 4) + ':K' + str(lastRow + 4)) #就業時間数
-        excel.mergeCell('L' + str(lastRow + 4) + ':M' + str(lastRow + 4))
-        excel.mergeCell('A' + str(lastRow + 6) + ':M' + str(lastRow + 6)) #連絡欄
-        excel.mergeCell('A' + str(lastRow + 7) + ':M' + str(lastRow + 10))
-        excel.mergeCell('I' + str(lastRow + 12) + ':J' + str(lastRow + 12)) #確認欄
-        excel.mergeCell('I' + str(lastRow + 13) + ':J' + str(lastRow + 16))
-        excel.mergeCell('K' + str(lastRow + 12) + ':L' + str(lastRow + 12)) #承認欄
-        excel.mergeCell('K' + str(lastRow + 13) + ':L' + str(lastRow + 16))
+        excel.mergeCell('A' + StringOperation.toString(lastRow) + ':E' + StringOperation.toString(lastRow)) #合計
+        excel.mergeCell('A' + StringOperation.toString(lastRow + 1) + ':E' + StringOperation.toString(lastRow + 1)) #総時間
+        excel.mergeCell('J' + StringOperation.toString(lastRow + 3) + ':K' + StringOperation.toString(lastRow + 3)) #実出勤日数
+        excel.mergeCell('L' + StringOperation.toString(lastRow + 3) + ':M' + StringOperation.toString(lastRow + 3))
+        excel.mergeCell('J' + StringOperation.toString(lastRow + 4) + ':K' + StringOperation.toString(lastRow + 4)) #就業時間数
+        excel.mergeCell('L' + StringOperation.toString(lastRow + 4) + ':M' + StringOperation.toString(lastRow + 4))
+        excel.mergeCell('A' + StringOperation.toString(lastRow + 6) + ':M' + StringOperation.toString(lastRow + 6)) #連絡欄
+        excel.mergeCell('A' + StringOperation.toString(lastRow + 7) + ':M' + StringOperation.toString(lastRow + 10))
+        excel.mergeCell('I' + StringOperation.toString(lastRow + 12) + ':J' + StringOperation.toString(lastRow + 12)) #確認欄
+        excel.mergeCell('I' + StringOperation.toString(lastRow + 13) + ':J' + StringOperation.toString(lastRow + 16))
+        excel.mergeCell('K' + StringOperation.toString(lastRow + 12) + ':L' + StringOperation.toString(lastRow + 12)) #承認欄
+        excel.mergeCell('K' + StringOperation.toString(lastRow + 13) + ':L' + StringOperation.toString(lastRow + 16))
 
         #文字位置等
         excel.setAlignment('A1', 'top', 'center')
         excel.setAlignment('A4', 'top', 'center')
         excel.setAlignment('L4', 'top', 'center')
         excel.setAlignmentMulti('A5:M5', 'center', 'center', True)
-        excel.setAlignmentMulti('A6:L' + str(lastRow + 1), 'center', 'center')
-        excel.setAlignmentMulti('M6:M'+ str(lastRow - 1), 'top', 'left', True)
-        excel.setAlignment('I'+ str(lastRow + 12), 'top', 'center')
-        excel.setAlignment('K'+ str(lastRow + 12), 'top', 'center')
+        excel.setAlignmentMulti('A6:L' + StringOperation.toString(lastRow + 1), 'center', 'center')
+        excel.setAlignmentMulti('M6:M'+ StringOperation.toString(lastRow - 1), 'top', 'left', True)
+        excel.setAlignment('I'+ StringOperation.toString(lastRow + 12), 'top', 'center')
+        excel.setAlignment('K'+ StringOperation.toString(lastRow + 12), 'top', 'center')
 
         #罫線
-        excel.setBorderMulti('A5:M'+ str(lastRow + 1))
-        excel.setBorderMulti('J' + str(lastRow + 3) + ':M'+ str(lastRow + 4))
-        excel.setBorderMulti('A'  + str(lastRow + 6) + ':M'+ str(lastRow + 10))
-        excel.setBorderMulti('I' + str(lastRow + 12) + ':L'+ str(lastRow + 16))
+        excel.setBorderMulti('A5:M'+ StringOperation.toString(lastRow + 1))
+        excel.setBorderMulti('J' + StringOperation.toString(lastRow + 3) + ':M'+ StringOperation.toString(lastRow + 4))
+        excel.setBorderMulti('A'  + StringOperation.toString(lastRow + 6) + ':M'+ StringOperation.toString(lastRow + 10))
+        excel.setBorderMulti('I' + StringOperation.toString(lastRow + 12) + ':L'+ StringOperation.toString(lastRow + 16))
 
         #1ページに収める
         excel.setFitToPage()
@@ -493,7 +493,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         y = int(dt.split('-')[0])
         m = int(dt.split('-')[1])
 
-        ym = str(y) + '年' + str(m) + '月'
+        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
 
         mail = SendMail()
 

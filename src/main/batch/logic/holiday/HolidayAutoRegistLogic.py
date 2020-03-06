@@ -38,8 +38,8 @@ class HolidayAutoRegistLogic(BaseLogic):
 
         #BulkInsert処理
         for day in holidayList:
-            holidayDate = str(day[0])
-            holidayMonth = str(holidayDate[0:holidayDate.rfind('-')])
+            holidayDate = StringOperation.toString(day[0])
+            holidayMonth = StringOperation.toString(holidayDate[0:holidayDate.rfind('-')])
             holidayName = day[1]
             values.append([holidayDate,holidayMonth,holidayName])
 
