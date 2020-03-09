@@ -152,8 +152,10 @@ class CostManageAutoOutputLogic(BaseLogic):
             expensesYmd = StringOperation.toString(select[i][ExpensesDao.COL_EXPENSES_YMD])
             expensesYmd = expensesYmd[:4] + '年' + str(int(expensesYmd[5:7])) + '月' + str(int(expensesYmd[8:])) + '日'
             if inputType == '1':
+                roundTrip = ''
                 #交通費
-                roundTrip = self.roundTripTypeMap[select[i][ExpensesDao.COL_ROUND_TRIP_TYPE]]
+                if select[i][ExpensesDao.COL_ROUND_TRIP_TYPE] != None:
+                    roundTrip = self.roundTripTypeMap[select[i][ExpensesDao.COL_ROUND_TRIP_TYPE]]
                 expensesList.append([expensesYmd, roundTrip, select[i][ExpensesDao.COL_TRANSPORT], select[i][ExpensesDao.COL_FROM_PLACE], select[i][ExpensesDao.COL_TO_PLACE], select[i][ExpensesDao.COL_EXPENSES_DETAIL], select[i][ExpensesDao.COL_COST]])
             elif inputType == '2':
                 #経費(現金、立替金は固定出力)
