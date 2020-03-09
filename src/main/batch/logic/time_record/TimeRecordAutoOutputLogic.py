@@ -4,9 +4,8 @@
 
 @author: takanori_gozu
 '''
-import glob
 import calendar
-import zipfile
+import shutil
 import os
 from datetime import datetime
 from copy import copy
@@ -81,9 +80,9 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     前回処理分を削除する
     '''
     def deleteLastSessionData(self):
-        files = glob.glob(Config.getConf('TimeRecordAutoDLinfo', 'download_path') + '*')
-        for file in files:
-            os.remove(file)
+        dirPath = Config.getConf('TimeRecordAutoDLinfo', 'download_path')
+        shutil.rmtree(dirPath)
+        os.mkdir(dirPath)
 
     '''
     処理する社員情報を取得する
@@ -479,11 +478,10 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     '''
     def makeZipFile(self):
 
-        filePath = glob.glob(Config.getConf('TimeRecordAutoDLinfo', 'download_path') + '*')
+        dirPath = Config.getConf('TimeRecordAutoDLinfo', 'download_path')
+        outputPath = Config.getConf('TimeRecordAutoDLinfo', 'output_path')
 
-        with zipfile.ZipFile(Config.getConf('TimeRecordAutoDLinfo', 'download_path') + 'time_sheet.zip', 'w', compression=zipfile.ZIP_DEFLATED) as newZip:
-            for file in filePath:
-                newZip.write(file, arcname=os.path.basename(file))
+        shutil.make_archive(outputPath + 'time_sheet', 'zip', root_dir=dirPath)
 
     '''
     メール送信
@@ -501,6 +499,6 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         mail.setMailTo(Config.getConf('TimeRecordAutoDLinfo', 'kanri_mail'))
         mail.setMailSubject('【自動送信】' + ym + '勤怠表')
         mail.setMailText(ym + '分の勤怠表を送付します。')
-        mail.setAttach(Config.getConf('TimeRecordAutoDLinfo', 'download_path') + 'time_sheet.zip')
+        mail.setAttach(Config.getConf('TimeRecordAutoDLinfo', 'output_path') + 'time_sheet.zip')
 
         mail.send()
