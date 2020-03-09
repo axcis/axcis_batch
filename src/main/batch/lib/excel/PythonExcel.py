@@ -6,9 +6,7 @@ Excel操作ライブラリ
 @author: takanori_gozu
 '''
 import openpyxl
-from openpyxl.styles.fonts import Font
-from openpyxl.styles.fills import PatternFill
-from openpyxl.styles.borders import Side, Border
+from openpyxl.styles.borders import Side
 from openpyxl.styles.alignment import Alignment
 
 class PythonExcel:
@@ -66,6 +64,12 @@ class PythonExcel:
         self.sheet.page_setup.paperSize = self.sheet.PAPERSIZE_A4
 
     '''
+    横向き
+    '''
+    def setOrientation(self):
+        self.sheet.page_setup.orientation = self.sheet.ORIENTATION_LANDSCAPE
+
+    '''
     1ページに収める
     '''
     def setFitToPage(self):
@@ -75,22 +79,39 @@ class PythonExcel:
     フォントの変更
     '''
     def changeFont(self, range, fontName):
-        font = Font(name=fontName)
-        self.sheet[range].font = font
+        self.sheet[range].font = self.sheet[range].font.copy(name=fontName)
+
+    '''
+    フォントの変更(複数セル)
+    '''
+    def changeFontMulti(self, range, fontName):
+        startRange = range.split(':')[0]
+        endRange = range.split(':')[1]
+        for rows in self.sheet[startRange : endRange]:
+            for cell in rows:
+                self.sheet[cell.coordinate].font = self.sheet[cell.coordinate].font.copy(name=fontName)
 
     '''
     フォントサイズの変更
     '''
     def changeSize(self, range, size):
-        font = Font(size=size)
-        self.sheet[range].font = font
+        self.sheet[range].font = self.sheet[range].font.copy(size=size)
+
+    '''
+    フォントサイズの変更(複数セル)
+    '''
+    def changeSizeMulti(self, range, size):
+        startRange = range.split(':')[0]
+        endRange = range.split(':')[1]
+        for rows in self.sheet[startRange : endRange]:
+            for cell in rows:
+                self.sheet[cell.coordinate].font = self.sheet[cell.coordinate].font.copy(size=size)
 
     '''
     セルの背景色
     '''
     def changeCellBackColor(self, range, color, type = 'solid'):
-        fill = PatternFill(patternType=type, start_color=color, end_color=color)
-        self.sheet[range].fill = fill
+        self.sheet[range].fill = self.sheet[range].fill.copy(patternType=type, start_color=color, end_color=color)
 
     '''
     セルの背景色(複数セル)
@@ -98,17 +119,15 @@ class PythonExcel:
     def changeCellBackColorMulti(self, range, color, type = 'solid'):
         startRange = range.split(':')[0]
         endRange = range.split(':')[1]
-        fill = PatternFill(patternType=type, start_color=color, end_color=color)
         for rows in self.sheet[startRange : endRange]:
             for cell in rows:
-                self.sheet[cell.coordinate].fill = fill
+                self.sheet[cell.coordinate].fill = self.sheet[cell.coordinate].fill.copy(patternType=type, start_color=color, end_color=color)
 
     '''
     セルの文字色
     '''
     def changeCellFrontColor(self, range, color):
-        font = Font(color=color)
-        self.sheet[range].font = font
+        self.sheet[range].font = self.sheet[range].font.copy(color=color)
 
     '''
     セルの文字色(複数セル)
@@ -116,10 +135,9 @@ class PythonExcel:
     def changeCellFrontColorMulti(self, range, color):
         startRange = range.split(':')[0]
         endRange = range.split(':')[1]
-        font = Font(color=color)
         for rows in self.sheet[startRange : endRange]:
             for cell in rows:
-                self.sheet[cell.coordinate].font = font
+                self.sheet[cell.coordinate].font = self.sheet[cell.coordinate].font.copy(color=color)
 
     '''
     セルの書式設定(縦位置、横位置、セル内改行)
@@ -149,15 +167,15 @@ class PythonExcel:
     def setBorder(self, range, style = 'thin', color = '000000', place = 'all'):
         side = Side(style=style, color=color)
         if place == 'all':
-            border = Border(top=side, bottom=side, left=side, right=side)
+            border = self.sheet[range].border.copy(top=side, bottom=side, left=side, right=side)
         elif place == 'top':
-            border = Border(top=side)
+            border = self.sheet[range].border.copy(top=side)
         elif place == 'bottom':
-            border = Border(bottom=side)
+            border = self.sheet[range].border.copy(bottom=side)
         elif place == 'left':
-            border = Border(left=side)
+            border = self.sheet[range].border.copy(left=side)
         elif place == 'right':
-            border = Border(right=side)
+            border = self.sheet[range].border.copy(right=side)
 
         self.sheet[range].border = border
 
@@ -166,21 +184,22 @@ class PythonExcel:
     '''
     def setBorderMulti(self, range, style = 'thin', color = '000000', place = 'all'):
         side = Side(style=style, color=color)
-        if place == 'all':
-            border = Border(top=side, bottom=side, left=side, right=side)
-        elif place == 'top':
-            border = Border(top=side)
-        elif place == 'bottom':
-            border = Border(bottom=side)
-        elif place == 'left':
-            border = Border(left=side)
-        elif place == 'right':
-            border = Border(right=side)
 
         startRange = range.split(':')[0]
         endRange = range.split(':')[1]
         for rows in self.sheet[startRange : endRange]:
             for cell in rows:
+                if place == 'all':
+                    border = self.sheet[cell.coordinate].border.copy(top=side, bottom=side, left=side, right=side)
+                elif place == 'top':
+                    border = self.sheet[cell.coordinate].border.copy(top=side)
+                elif place == 'bottom':
+                    border = self.sheet[cell.coordinate].border.copy(bottom=side)
+                elif place == 'left':
+                    border = self.sheet[cell.coordinate].border.copy(left=side)
+                elif place == 'right':
+                    border = self.sheet[cell.coordinate].border.copy(right=side)
+
                 self.sheet[cell.coordinate].border = border
 
     '''
@@ -194,6 +213,12 @@ class PythonExcel:
     '''
     def setValueR1C1(self, col, row, value):
         self.sheet.cell(row=row, column=col).value = value
+
+    '''
+    フォーマット
+    '''
+    def setNumberFormat(self, range, value):
+        self.sheet[range].number_format = value
 
     '''
     印刷範囲の設定
