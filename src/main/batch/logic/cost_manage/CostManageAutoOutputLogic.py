@@ -92,6 +92,9 @@ class CostManageAutoOutputLogic(BaseLogic):
         shutil.rmtree(dirPath)
         os.mkdir(dirPath)
 
+        #Zipファイル
+        os.remove(Config.getConf('CostManageAutoDLinfo', 'output_path') + 'cost_manage.zip')
+
     '''
     社員情報を取得する
     '''
