@@ -2,7 +2,7 @@
 
 export PYTHONPATH="/var/bin/python/axcis_batch/"
 
-date="`date '+%Y-%m-%d'`"
+year="`date '+%Y'`"
 cd /var/bin/python/axcis_batch/src/main/batch/
 
-python3.7 HolidayAutoRegist.py -date $date
+python3.7 HolidayAutoRegist.py -year $year

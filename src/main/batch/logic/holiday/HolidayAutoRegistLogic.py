@@ -22,17 +22,14 @@ class HolidayAutoRegistLogic(BaseLogic):
     '''
     def run(self):
 
-        date = self.getForm('-date')
+        targetYear = self.getForm('-year')
 
-        if date == '':
-            self.writeLog('parameter:-date is not set')
+        if targetYear == '':
+            self.writeLog('parameter:-year is not set')
             return
 
-        #対象年を取得
-        targetYear = int(date[0:date.find('-')])
-
         #祝祭日一覧
-        holidayList = jpholiday.year_holidays(targetYear)
+        holidayList = jpholiday.year_holidays(int(targetYear))
 
         values =[]
 
@@ -49,6 +46,6 @@ class HolidayAutoRegistLogic(BaseLogic):
         dao.addBulkCol(HolidayDao.COL_HOLIDAY_NAME)
         dao.doBulkInsert(values)
 
-        self.writeLog(StringOperation.toString(targetYear) + '年祝祭日データ登録完了')
+        self.writeLog(targetYear + '年祝祭日データ登録完了')
 
         return
