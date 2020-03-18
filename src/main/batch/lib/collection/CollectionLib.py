@@ -1,12 +1,12 @@
 # coding: UTF-8
 '''
-Collection
+CollectionLib
 コレクション(配列、リスト等)操作ライブラリ
 
 @author: takanori_gozu
 '''
 
-class Collection:
+class CollectionLib:
 
     '''
     指定された項目名のListを生成
@@ -32,3 +32,16 @@ class Collection:
             newMap[mapKey] = mapValue
 
         return newMap
+
+    '''
+    二次元配列から1つのカラムを連結して返す
+    '''
+    @staticmethod
+    def toStringVal(select, col = 'id', delim = ','):
+        val = ''
+
+        for i in range(len(select)):
+            if val != '': val += delim
+            val += select[i][col]
+
+        return val

@@ -4,10 +4,10 @@
 
 @author: takanori_gozu
 '''
-import jpholiday
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.dao.HolidayDao import HolidayDao
-from src.main.batch.lib.string.StringOperation import StringOperation
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class HolidayAutoRegistLogic(BaseLogic):
 
@@ -29,15 +29,15 @@ class HolidayAutoRegistLogic(BaseLogic):
             return
 
         #祝祭日一覧
-        holidayList = jpholiday.year_holidays(int(targetYear))
+        holidayList = DateUtilLib.getHolidayList(StringOperationLib.toInt(targetYear))
 
         values =[]
 
         #BulkInsert処理
         for day in holidayList:
-            holidayDate = StringOperation.toString(day[0])
-            holidayMonth = StringOperation.toString(holidayDate[0:holidayDate.rfind('-')])
-            holidayName = day[1]
+            holidayDate = StringOperationLib.toString(day[0])
+            holidayMonth = StringOperationLib.toString(holidayDate[0:holidayDate.rfind('-')])
+            holidayName = DateUtilLib.getHolidayName(day[0])
             values.append([holidayDate,holidayMonth,holidayName])
 
         dao = HolidayDao(self.db)

@@ -1,6 +1,6 @@
 # coding: UTF-8
 '''
-PythonExcel
+PythonExcelLib
 Excel操作ライブラリ
 
 @author: takanori_gozu
@@ -9,7 +9,7 @@ import openpyxl
 from openpyxl.styles.borders import Side
 from openpyxl.styles.alignment import Alignment
 
-class PythonExcel:
+class PythonExcelLib:
 
     excel = None
     sheet = None

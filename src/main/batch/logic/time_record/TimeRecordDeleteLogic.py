@@ -4,11 +4,10 @@
 
 @author: takanori_gozu
 '''
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from src.main.batch.base.BaseLogic import BaseLogic
-from src.main.batch.lib.string.StringOperation import StringOperation
 from src.main.batch.dao.TimeRecordDao import TimeRecordDao
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class TimeRecordDeleteLogic(BaseLogic):
 
@@ -38,7 +37,7 @@ class TimeRecordDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('削除対象データ件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('削除対象データ件数：' + StringOperationLib.toString(count) + '件')
 
         dao.doDelete()
 
@@ -48,8 +47,6 @@ class TimeRecordDeleteLogic(BaseLogic):
     データ削除の基準日を取得する
     '''
     def getStandardDate(self, dt):
-        date = dt + ' 00:00:00'
-        bdt = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-
+        date = DateUtilLib.toDateTimeDate(dt)
         #文字列で返す
-        return StringOperation.toString((bdt - relativedelta(years=3)).date())
+        return StringOperationLib.toString(DateUtilLib.getDateIntervalYear(date, -3))

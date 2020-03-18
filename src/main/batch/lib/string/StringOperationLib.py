@@ -1,13 +1,12 @@
 # coding: UTF-8
 '''
-StringOperation
+StringOperationLib
 文字列操作関数ライブラリ
 
 @author: takanori_gozu
 '''
-from datetime import datetime
 
-class StringOperation:
+class StringOperationLib:
 
     '''
     Left関数
@@ -52,8 +51,15 @@ class StringOperation:
         return str(obj)
 
     '''
-    文字列型日付をDatetime型日付に変換して返す
+    数値に変換して返す
     '''
     @staticmethod
-    def toDateTimeDate(date):
-        return datetime.strptime(date, '%Y-%m-%d')
+    def toInt(obj):
+        return int(obj)
+
+    '''
+    数値の0埋め
+    '''
+    @staticmethod
+    def printF(obj, interval):
+        return obj.zfill(interval)

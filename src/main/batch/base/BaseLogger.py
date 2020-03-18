@@ -6,9 +6,9 @@ BaseLogger
 @author: takanori_gozu
 '''
 from src.main.batch.base.Config import Config
-from src.main.batch.lib.string.StringOperation import StringOperation
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
-class BaseLogger(object):
+class BaseLogger:
 
     path = None
 
@@ -38,7 +38,7 @@ class BaseLogger(object):
     エラーログの書き込み
     '''
     def writeErrLog(self, e):
-        self.file.write(StringOperation.toString(e) + '\r\n')
+        self.file.write(StringOperationLib.toString(e) + '\r\n')
 
     '''
     ファイルクローズ
