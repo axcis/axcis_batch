@@ -4,26 +4,22 @@
 
 @author: takanori_gozu
 '''
-import calendar
-import shutil
-import os
-from datetime import datetime
 from copy import copy
-from dateutil.relativedelta import relativedelta
+from decimal import Decimal
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.base.Config import Config
-from src.main.batch.lib.mail.SendMail import SendMail
-from src.main.batch.lib.string.StringOperation import StringOperation
 from src.main.batch.dao.EmployeeDao import EmployeeDao
 from src.main.batch.dao.HolidayDao import HolidayDao
 from src.main.batch.dao.TimeRecordDao import TimeRecordDao
-from src.main.batch.lib.excel.PythonExcel import PythonExcel
-from src.main.batch.lib.collection.Collection import Collection
-from _decimal import Decimal
+from src.main.batch.lib.collection.CollectionLib import CollectionLib
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
+from src.main.batch.lib.excel.PythonExcelLib import PythonExcelLib
+from src.main.batch.lib.file.FileOperationLib import FileOperationLib
+from src.main.batch.lib.mail.SendMailLib import SendMailLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class TimeRecordAutoOutputLogic(BaseLogic):
 
-    weekdayList = ['月', '火', '水', '木', '金', '土', '日', '祝']
     classMap = {'1':'出勤', '2':'休日出勤', '3':'有休', '4':'振休', '5':'欠勤', '6':'公休', '7':'年末年始休暇', '8':'夏季休暇'}
 
     '''
@@ -50,7 +46,8 @@ class TimeRecordAutoOutputLogic(BaseLogic):
 
         #処理する社員情報を取得
         employeeMap = self.getEmployeeMap()
-        dt = StringOperation.toString((datetime.strptime(date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') - relativedelta(months=1)).date())
+        dt = DateUtilLib.toDateTimeDate(date)
+        dt = StringOperationLib.toString(DateUtilLib.getDateIntervalMonth(dt, -1))
 
         #祝祭日マスタを取得しておく
         holidayList = self.getHolidayList(dt, date)
@@ -80,12 +77,14 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     前回処理分を削除する
     '''
     def deleteLastSessionData(self):
+
+        #全て消してから新たに作成する
         dirPath = Config.getConf('TimeRecordAutoDLinfo', 'download_path')
-        shutil.rmtree(dirPath)
-        os.mkdir(dirPath)
+        FileOperationLib.deleteDir(dirPath)
+        FileOperationLib.makeDir(dirPath)
 
         #Zipファイル
-        os.remove(Config.getConf('TimeRecordAutoDLinfo', 'output_path') + 'time_sheet.zip')
+        FileOperationLib.deleteFile(Config.getConf('TimeRecordAutoDLinfo', 'output_path') + 'time_sheet.zip')
 
     '''
     処理する社員情報を取得する
@@ -101,7 +100,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
 
         dao.addOrder(EmployeeDao.COL_HIRAGANA) #50音順で処理
 
-        return Collection.toMap(dao.doSelect())
+        return CollectionLib.toMap(dao.doSelect())
 
     '''
     祝祭日マスタを取得
@@ -143,24 +142,23 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     '''
     def makeBaseMap(self, dt, holidayList):
 
-        y = int(dt.split('-')[0])
-        m = int(dt.split('-')[1])
+        year, month, _ = DateUtilLib.splitYmd(dt)
+        lastDay = DateUtilLib.getLastDay(StringOperationLib.toInt(year), StringOperationLib.toInt(month))
 
         baseMap = {}
 
-        _, lastday = calendar.monthrange(y,m)
-        hi = datetime.strptime(dt + ' 00:00:00', '%Y-%m-%d %H:%M:%S')
+        hi = DateUtilLib.toDateTimeDate(dt)
 
-        for x in range(lastday):
+        for x in range(lastDay):
 
-            weekday = hi.weekday()
-            day = int(StringOperation.toString(hi.date()).split('-')[2]);
+            weekday = DateUtilLib.getWeekDayName(hi)
+            day = DateUtilLib.getDay(hi)
 
-            if StringOperation.toString(hi.date()) in holidayList:
-                weekday = 7
+            if StringOperationLib.toString(hi) in holidayList:
+                weekday = '祝'
 
-            baseMap[StringOperation.toString(hi.date())] = [day, self.weekdayList[weekday], '', '', '', '', '', '', '', '', '', '', '']
-            hi = hi + relativedelta(days=1)
+            baseMap[StringOperationLib.toString(hi)] = [day, weekday, '', '', '', '', '', '', '', '', '', '', '']
+            hi = DateUtilLib.getDateIntervalDay(hi, 1)
 
         return baseMap
 
@@ -194,31 +192,21 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         select = dao.doSelect()
 
         for i in range(len(select)):
-            key = StringOperation.toString(select[i][TimeRecordDao.COL_WORK_DATE])
+            key = StringOperationLib.toString(select[i][TimeRecordDao.COL_WORK_DATE])
             clsVal = self.classMap[select[i][TimeRecordDao.COL_CLASSIFICATION]]
-            startTime = self.intToHM(select[i][TimeRecordDao.COL_START_TIME])
-            endTime = self.intToHM(select[i][TimeRecordDao.COL_END_TIME])
-            breakTime = self.intToHM(select[i][TimeRecordDao.COL_BREAK_TIME])
-            prescribedTime = self.intToHM(select[i][TimeRecordDao.COL_PRESCRIBED_TIME])
-            overWorkTime = self.intToHM(select[i][TimeRecordDao.COL_OVER_WORK_TIME])
-            midnightTime = self.intToHM(select[i][TimeRecordDao.COL_MIDNIGHT_TIME])
-            midnightBreakTime = self.intToHM(select[i][TimeRecordDao.COL_MIDNIGHT_BREAK_TIME])
-            midnightOverWorkTime = self.intToHM(select[i][TimeRecordDao.COL_MIDNIGHT_OVER_WORK_TIME])
-            workTime = self.intToHM(select[i][TimeRecordDao.COL_WORK_TIME])
+            startTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_START_TIME])
+            endTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_END_TIME])
+            breakTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_BREAK_TIME])
+            prescribedTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_PRESCRIBED_TIME])
+            overWorkTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_OVER_WORK_TIME])
+            midnightTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_MIDNIGHT_TIME])
+            midnightBreakTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_MIDNIGHT_BREAK_TIME])
+            midnightOverWorkTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_MIDNIGHT_OVER_WORK_TIME])
+            workTime = DateUtilLib.toHm(select[i][TimeRecordDao.COL_WORK_TIME])
             remark = select[i][TimeRecordDao.COL_REMARK]
             dbMap[key] = [clsVal, startTime, endTime, breakTime, prescribedTime, overWorkTime, midnightTime, midnightBreakTime, midnightOverWorkTime, workTime, remark]
 
         return dbMap
-
-    '''
-    時間のフォーマット変換(Int→hh:mm)
-    '''
-    def intToHM(self, timeInt):
-
-        if timeInt == None: return None
-        h, m = divmod(timeInt, 60)
-
-        return StringOperation.toString(h) + ':' + StringOperation.toString(m).zfill(2)
 
     '''
     時間のフォーマット変換(Int→0.00h)
@@ -266,7 +254,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         dao.addSelectSumAs(TimeRecordDao.COL_MIDNIGHT_OVER_WORK_TIME, 'total_midnight_over_work_time')
         dao.addSelectSumAs(TimeRecordDao.COL_WORK_TIME, 'total_work_time')
 
-        dao.addWhere(TimeRecordDao.COL_EMPLOYEE_ID, StringOperation.toString(employeeId))
+        dao.addWhere(TimeRecordDao.COL_EMPLOYEE_ID, StringOperationLib.toString(employeeId))
         dao.addWhereStr(TimeRecordDao.COL_WORK_DATE, fromDt, TimeRecordDao.COMP_GREATER_EQUAL)
         dao.addWhereStr(TimeRecordDao.COL_WORK_DATE, toDt, TimeRecordDao.COMP_LESS)
         dao.addWhereIn(TimeRecordDao.COL_SCENE, [1,3]) #共通と本社用のみ取得してくる
@@ -278,13 +266,10 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     '''
     def makeExcel(self, dt, recordMapList, totalList, name):
 
-        y = int(dt.split('-')[0])
-        m = int(dt.split('-')[1])
+        ym = DateUtilLib.getYmFormatJapanese(dt)
+        name = StringOperationLib.replace(name, " ", "")
 
-        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
-        name = StringOperation.replace(name, " ", "")
-
-        excel = PythonExcel()
+        excel = PythonExcelLib()
         excel.setPageA4
 
         excel.rename('月間作業実績報告書')
@@ -373,7 +358,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         col+=5
         for value in totalList.values():
             if value != None and value != 0:
-                excel.setValueR1C1(col, row, self.intToHM(value))
+                excel.setValueR1C1(col, row, DateUtilLib.toHm(value))
             col+=1
 
         row+=1
@@ -394,10 +379,10 @@ class TimeRecordAutoOutputLogic(BaseLogic):
 
         #実出勤日数、就業時間数
         excel.setValueR1C1(10, row, '実出勤日数')
-        excel.setValueR1C1(12, row, '=COUNTA(E6:E' + StringOperation.toString(lastRow) + ') & "日"')
+        excel.setValueR1C1(12, row, '=COUNTA(E6:E' + StringOperationLib.toString(lastRow) + ') & "日"')
         row+=1
         excel.setValueR1C1(10, row, '就業時間数')
-        excel.setValueR1C1(12, row, '=L' + StringOperation.toString(lastRow + 1))
+        excel.setValueR1C1(12, row, '=L' + StringOperationLib.toString(lastRow + 1))
 
         #連絡欄
         row+=2
@@ -437,41 +422,41 @@ class TimeRecordAutoOutputLogic(BaseLogic):
 
         #着色
         excel.changeCellBackColorMulti('A5:M5', 'FFFF00')
-        excel.changeCellBackColorMulti('D6:E' + StringOperation.toString(lastRow - 1), '00FFFF')
-        excel.changeCellBackColorMulti('G6:L' + StringOperation.toString(lastRow - 1), '00FFFF')
+        excel.changeCellBackColorMulti('D6:E' + StringOperationLib.toString(lastRow - 1), '00FFFF')
+        excel.changeCellBackColorMulti('G6:L' + StringOperationLib.toString(lastRow - 1), '00FFFF')
 
         #結合
         excel.mergeCell('A1:M1') #タイトル
         excel.mergeCell('A4:C4') #年月
         excel.mergeCell('L4:M4') #氏名
-        excel.mergeCell('A' + StringOperation.toString(lastRow) + ':E' + StringOperation.toString(lastRow)) #合計
-        excel.mergeCell('A' + StringOperation.toString(lastRow + 1) + ':E' + StringOperation.toString(lastRow + 1)) #総時間
-        excel.mergeCell('J' + StringOperation.toString(lastRow + 3) + ':K' + StringOperation.toString(lastRow + 3)) #実出勤日数
-        excel.mergeCell('L' + StringOperation.toString(lastRow + 3) + ':M' + StringOperation.toString(lastRow + 3))
-        excel.mergeCell('J' + StringOperation.toString(lastRow + 4) + ':K' + StringOperation.toString(lastRow + 4)) #就業時間数
-        excel.mergeCell('L' + StringOperation.toString(lastRow + 4) + ':M' + StringOperation.toString(lastRow + 4))
-        excel.mergeCell('A' + StringOperation.toString(lastRow + 6) + ':M' + StringOperation.toString(lastRow + 6)) #連絡欄
-        excel.mergeCell('A' + StringOperation.toString(lastRow + 7) + ':M' + StringOperation.toString(lastRow + 10))
-        excel.mergeCell('I' + StringOperation.toString(lastRow + 12) + ':J' + StringOperation.toString(lastRow + 12)) #確認欄
-        excel.mergeCell('I' + StringOperation.toString(lastRow + 13) + ':J' + StringOperation.toString(lastRow + 16))
-        excel.mergeCell('K' + StringOperation.toString(lastRow + 12) + ':L' + StringOperation.toString(lastRow + 12)) #承認欄
-        excel.mergeCell('K' + StringOperation.toString(lastRow + 13) + ':L' + StringOperation.toString(lastRow + 16))
+        excel.mergeCell('A' + StringOperationLib.toString(lastRow) + ':E' + StringOperationLib.toString(lastRow)) #合計
+        excel.mergeCell('A' + StringOperationLib.toString(lastRow + 1) + ':E' + StringOperationLib.toString(lastRow + 1)) #総時間
+        excel.mergeCell('J' + StringOperationLib.toString(lastRow + 3) + ':K' + StringOperationLib.toString(lastRow + 3)) #実出勤日数
+        excel.mergeCell('L' + StringOperationLib.toString(lastRow + 3) + ':M' + StringOperationLib.toString(lastRow + 3))
+        excel.mergeCell('J' + StringOperationLib.toString(lastRow + 4) + ':K' + StringOperationLib.toString(lastRow + 4)) #就業時間数
+        excel.mergeCell('L' + StringOperationLib.toString(lastRow + 4) + ':M' + StringOperationLib.toString(lastRow + 4))
+        excel.mergeCell('A' + StringOperationLib.toString(lastRow + 6) + ':M' + StringOperationLib.toString(lastRow + 6)) #連絡欄
+        excel.mergeCell('A' + StringOperationLib.toString(lastRow + 7) + ':M' + StringOperationLib.toString(lastRow + 10))
+        excel.mergeCell('I' + StringOperationLib.toString(lastRow + 12) + ':J' + StringOperationLib.toString(lastRow + 12)) #確認欄
+        excel.mergeCell('I' + StringOperationLib.toString(lastRow + 13) + ':J' + StringOperationLib.toString(lastRow + 16))
+        excel.mergeCell('K' + StringOperationLib.toString(lastRow + 12) + ':L' + StringOperationLib.toString(lastRow + 12)) #承認欄
+        excel.mergeCell('K' + StringOperationLib.toString(lastRow + 13) + ':L' + StringOperationLib.toString(lastRow + 16))
 
         #文字位置等
         excel.setAlignment('A1', 'top', 'center')
         excel.setAlignment('A4', 'top', 'center')
         excel.setAlignment('L4', 'top', 'center')
         excel.setAlignmentMulti('A5:M5', 'center', 'center', True)
-        excel.setAlignmentMulti('A6:L' + StringOperation.toString(lastRow + 1), 'center', 'center')
-        excel.setAlignmentMulti('M6:M'+ StringOperation.toString(lastRow - 1), 'top', 'left', True)
-        excel.setAlignment('I'+ StringOperation.toString(lastRow + 12), 'top', 'center')
-        excel.setAlignment('K'+ StringOperation.toString(lastRow + 12), 'top', 'center')
+        excel.setAlignmentMulti('A6:L' + StringOperationLib.toString(lastRow + 1), 'center', 'center')
+        excel.setAlignmentMulti('M6:M'+ StringOperationLib.toString(lastRow - 1), 'top', 'left', True)
+        excel.setAlignment('I'+ StringOperationLib.toString(lastRow + 12), 'top', 'center')
+        excel.setAlignment('K'+ StringOperationLib.toString(lastRow + 12), 'top', 'center')
 
         #罫線
-        excel.setBorderMulti('A5:M'+ StringOperation.toString(lastRow + 1))
-        excel.setBorderMulti('J' + StringOperation.toString(lastRow + 3) + ':M'+ StringOperation.toString(lastRow + 4))
-        excel.setBorderMulti('A'  + StringOperation.toString(lastRow + 6) + ':M'+ StringOperation.toString(lastRow + 10))
-        excel.setBorderMulti('I' + StringOperation.toString(lastRow + 12) + ':L'+ StringOperation.toString(lastRow + 16))
+        excel.setBorderMulti('A5:M'+ StringOperationLib.toString(lastRow + 1))
+        excel.setBorderMulti('J' + StringOperationLib.toString(lastRow + 3) + ':M'+ StringOperationLib.toString(lastRow + 4))
+        excel.setBorderMulti('A'  + StringOperationLib.toString(lastRow + 6) + ':M'+ StringOperationLib.toString(lastRow + 10))
+        excel.setBorderMulti('I' + StringOperationLib.toString(lastRow + 12) + ':L'+ StringOperationLib.toString(lastRow + 16))
 
         #1ページに収める
         excel.setFitToPage()
@@ -484,19 +469,16 @@ class TimeRecordAutoOutputLogic(BaseLogic):
         dirPath = Config.getConf('TimeRecordAutoDLinfo', 'download_path')
         outputPath = Config.getConf('TimeRecordAutoDLinfo', 'output_path')
 
-        shutil.make_archive(outputPath + 'time_sheet', 'zip', root_dir=dirPath)
+        FileOperationLib.fileArchive('time_sheet', outputPath, dirPath)
 
     '''
     メール送信
     '''
     def sendTimeSheet(self, dt):
 
-        y = int(dt.split('-')[0])
-        m = int(dt.split('-')[1])
+        ym = DateUtilLib.getYmFormatJapanese(dt)
 
-        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
-
-        mail = SendMail()
+        mail = SendMailLib()
 
         mail.setMailFrom(Config.getConf('MAILinfo', 'admin_mail_from'))
         mail.setMailTo(Config.getConf('TimeRecordAutoDLinfo', 'kanri_mail'))

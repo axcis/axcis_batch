@@ -7,8 +7,8 @@
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.dao.NoticeDao import NoticeDao
 from src.main.batch.dao.PresenceDao import PresenceDao
-from src.main.batch.lib.collection.Collection import Collection
-from src.main.batch.lib.string.StringOperation import StringOperation
+from src.main.batch.lib.collection.CollectionLib import CollectionLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class NoticeDeleteLogic(BaseLogic):
 
@@ -35,7 +35,7 @@ class NoticeDeleteLogic(BaseLogic):
             self.writeLog('削除対象データなし')
             return
 
-        self.writeLog('データ削除実施日：' + StringOperation.toString(date))
+        self.writeLog('データ削除実施日：' + StringOperationLib.toString(date))
 
         #掲載期限切れデータを削除
         self.deleteNoticeData(ids)
@@ -54,7 +54,7 @@ class NoticeDeleteLogic(BaseLogic):
         dao.addSelect(NoticeDao.COL_ID)
         dao.addWhereStr(NoticeDao.COL_PUBLISHED_DATE, dt, NoticeDao.COMP_LESS)
 
-        return Collection.toStringList(dao.doSelect())
+        return CollectionLib.toStringList(dao.doSelect())
 
     '''
     お知らせデータを削除する
@@ -66,7 +66,7 @@ class NoticeDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('お知らせ削除対象データ件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('お知らせ削除対象データ件数：' + StringOperationLib.toString(count) + '件')
 
         dao.doDelete()
 
@@ -82,7 +82,7 @@ class NoticeDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('出欠状況削除対象データ件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('出欠状況削除対象データ件数：' + StringOperationLib.toString(count) + '件')
 
         dao.doDelete()
 

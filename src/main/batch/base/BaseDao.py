@@ -5,10 +5,10 @@ DaoのBaseクラス
 
 @author: takanori_gozu
 '''
-from src.main.batch.lib.string.StringOperation import StringOperation
-from src.main.batch.lib.collection.Collection import Collection
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
+from src.main.batch.lib.collection.CollectionLib import CollectionLib
 
-class BaseDao(object):
+class BaseDao:
 
     COMP_EQUAL = ' = '
     COMP_NOT_EQUAL = ' <> '
@@ -120,7 +120,7 @@ class BaseDao(object):
     '''
     def doSelectCol(self, col):
         result = self.doSelect()
-        return Collection.toStringList(result, col)
+        return CollectionLib.toStringList(result, col)
 
     '''
     doSelectColの1件取得Ver
@@ -289,7 +289,7 @@ class BaseDao(object):
         for i in range(len(values)):
             if i > 0:
                 sql += ', '
-            sql += StringOperation.toString(values[i])
+            sql += StringOperationLib.toString(values[i])
 
         sql += ');'
 
@@ -343,7 +343,7 @@ class BaseDao(object):
         for i in range(len(keys)):
             if i > 0:
                 sql += ', '
-            sql += keys[i] + self.COMP_EQUAL + StringOperation.toString(self.colValMap[keys[i]])
+            sql += keys[i] + self.COMP_EQUAL + StringOperationLib.toString(self.colValMap[keys[i]])
 
         return sql
 

@@ -6,13 +6,13 @@ BaseBatch
 @author: takanori_gozu
 '''
 
-from datetime import datetime
 from abc import ABCMeta, abstractmethod
 from src.main.batch.base.DbManager import DbManager
 from src.main.batch.base.BaseLogger import BaseLogger
 from src.main.batch.base.Config import Config
-from src.main.batch.lib.mail.SendMail import SendMail
-from src.main.batch.lib.string.StringOperation import StringOperation
+from src.main.batch.lib.mail.SendMailLib import SendMailLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
 
 class BaseBatch(metaclass=ABCMeta):
 
@@ -33,8 +33,8 @@ class BaseBatch(metaclass=ABCMeta):
     def __init__(self):
         self.appId = self.getAppId()
         self.appName = self.getAppName()
-        self.procLogFileName = self.appId + "_" + StringOperation.toString(datetime.now().strftime("%Y-%m-%d")) + self.logExt
-        self.errLogFileName = self.appId + "_" + StringOperation.toString(datetime.now().strftime("%Y-%m-%d")) + "_Err" + self.logExt
+        self.procLogFileName = self.appId + "_" + StringOperationLib.toString(DateUtilLib.getToday()) + self.logExt
+        self.errLogFileName = self.appId + "_" + StringOperationLib.toString(DateUtilLib.getToday()) + "_Err" + self.logExt
 
     '''
     バッチのメイン処理
@@ -63,7 +63,7 @@ class BaseBatch(metaclass=ABCMeta):
             '''
             self.logger = BaseLogger(self.procLogFileName)
             self.logger.fileOpen()
-            self.logger.writeLog("START_TIME=" + StringOperation.toString(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            self.logger.writeLog("START_TIME=" + StringOperationLib.toString(DateUtilLib.getTime()))
             self.logger.writeLog("START_BATCH_NAME=" + self.appName)
             self.logger.writeLog("PARAM_INFO=" + self.appId + " param:" + " ".join(args))
 
@@ -83,7 +83,7 @@ class BaseBatch(metaclass=ABCMeta):
 
         finally:
             self.db.disConnect()
-            self.logger.writeLog("END_TIME=" + StringOperation.toString(datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + '\r\n')
+            self.logger.writeLog("END_TIME=" + StringOperationLib.toString(DateUtilLib.getTime()) + '\r\n')
             self.logger.fileClose()
 
     def errProc(self, e):
@@ -95,7 +95,7 @@ class BaseBatch(metaclass=ABCMeta):
             self.errLogger.fileClose()
 
             #エラーメール送信
-            errMail = SendMail()
+            errMail = SendMailLib()
 
             errMail.setMailFrom(Config.getConf('MAILinfo', 'admin_mail_from'))
             errMail.setMailTo(Config.getConf('MAILinfo', 'admin_mail_to'))

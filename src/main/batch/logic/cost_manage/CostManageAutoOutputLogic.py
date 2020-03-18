@@ -4,20 +4,16 @@
 
 @author: takanori_gozu
 '''
-import calendar
-import glob
-import os
-import shutil
 from copy import copy
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.base.Config import Config
-from src.main.batch.lib.string.StringOperation import StringOperation
-from src.main.batch.lib.excel.PythonExcel import PythonExcel
-from src.main.batch.lib.mail.SendMail import SendMail
 from src.main.batch.dao.EmployeeDao import EmployeeDao
 from src.main.batch.dao.ExpensesDao import ExpensesDao
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
+from src.main.batch.lib.excel.PythonExcelLib import PythonExcelLib
+from src.main.batch.lib.file.FileOperationLib import FileOperationLib
+from src.main.batch.lib.mail.SendMailLib import SendMailLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class CostManageAutoOutputLogic(BaseLogic):
 
@@ -44,16 +40,17 @@ class CostManageAutoOutputLogic(BaseLogic):
 
         #処理する社員情報を取得
         employeeList = self.getEmployeeList()
-        dt = StringOperation.toString((datetime.strptime(date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') - relativedelta(months=1)).date())
+        dt = DateUtilLib.toDateTimeDate(date)
+        dt = StringOperationLib.toString(DateUtilLib.getDateIntervalMonth(dt, -1))
 
-        targetYm = StringOperation.mid(dt, 1, dt.rfind('-'))
+        targetYm = StringOperationLib.mid(dt, 1, dt.rfind('-'))
 
         #ループ内
         for i in range(len(employeeList)):
 
-            userId = StringOperation.toString(employeeList[i][EmployeeDao.COL_ID])
-            name = StringOperation.toString(employeeList[i][EmployeeDao.COL_NAME])
-            loginId = StringOperation.toString(employeeList[i][EmployeeDao.COL_LOGIN_ID])
+            userId = StringOperationLib.toString(employeeList[i][EmployeeDao.COL_ID])
+            name = StringOperationLib.toString(employeeList[i][EmployeeDao.COL_NAME])
+            loginId = StringOperationLib.toString(employeeList[i][EmployeeDao.COL_LOGIN_ID])
 
             self.writeLog('処理対象社員名 : ' + name)
 
@@ -89,11 +86,11 @@ class CostManageAutoOutputLogic(BaseLogic):
     def deleteLastSessionData(self):
         #全て消してから新たに作成する
         dirPath = Config.getConf('CostManageAutoDLinfo', 'download_path')
-        shutil.rmtree(dirPath)
-        os.mkdir(dirPath)
+        FileOperationLib.deleteDir(dirPath)
+        FileOperationLib.makeDir(dirPath)
 
         #Zipファイル
-        os.remove(Config.getConf('CostManageAutoDLinfo', 'output_path') + 'cost_manage.zip')
+        FileOperationLib.deleteFile(Config.getConf('CostManageAutoDLinfo', 'output_path') + 'cost_manage.zip')
 
     '''
     社員情報を取得する
@@ -117,7 +114,7 @@ class CostManageAutoOutputLogic(BaseLogic):
     '''
     def makeEmployeeDir(self, employeeName):
         dirPath = Config.getConf('CostManageAutoDLinfo', 'download_path') + employeeName + '/'
-        os.mkdir(dirPath)
+        FileOperationLib.makeDir(dirPath)
 
         return dirPath
 
@@ -152,8 +149,8 @@ class CostManageAutoOutputLogic(BaseLogic):
         expensesList = []
 
         for i in range(len(select)):
-            expensesYmd = StringOperation.toString(select[i][ExpensesDao.COL_EXPENSES_YMD])
-            expensesYmd = expensesYmd[:4] + '年' + str(int(expensesYmd[5:7])) + '月' + str(int(expensesYmd[8:])) + '日'
+            expensesYmd = StringOperationLib.toString(select[i][ExpensesDao.COL_EXPENSES_YMD])
+            expensesYmd = DateUtilLib.getDateFormatJapanese(expensesYmd)
             if inputType == '1':
                 roundTrip = ''
                 #交通費
@@ -173,16 +170,13 @@ class CostManageAutoOutputLogic(BaseLogic):
 
         trafficName = '交通費精算書'
 
-        y = int(targetYm.split('-')[0])
-        m = int(targetYm.split('-')[1])
+        year, month = DateUtilLib.splitYm(targetYm)
+        lastDay = DateUtilLib.getLastDay(StringOperationLib.toInt(year), StringOperationLib.toInt(month))
+        ym = DateUtilLib.getYmFormatJapanese(targetYm)
+        ymd = ym + StringOperationLib.toString(lastDay) + '日'
+        name = StringOperationLib.replace(employeeName, " ", "")
 
-        _, lastDay = calendar.monthrange(y,m)
-
-        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
-        ymd = ym + StringOperation.toString(lastDay) + '日'
-        name = StringOperation.replace(employeeName, " ", "")
-
-        excel = PythonExcel()
+        excel = PythonExcelLib()
         excel.setPageA4
         excel.setOrientation()
 
@@ -216,16 +210,13 @@ class CostManageAutoOutputLogic(BaseLogic):
 
         expensesName = '経費精算書'
 
-        y = int(targetYm.split('-')[0])
-        m = int(targetYm.split('-')[1])
+        year, month = DateUtilLib.splitYm(targetYm)
+        lastDay = DateUtilLib.getLastDay(StringOperationLib.toInt(year), StringOperationLib.toInt(month))
+        ym = DateUtilLib.getYmFormatJapanese(targetYm)
+        ymd = ym + StringOperationLib.toString(lastDay) + '日'
+        name = StringOperationLib.replace(employeeName, " ", "")
 
-        _, lastDay = calendar.monthrange(y,m)
-
-        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
-        ymd = ym + StringOperation.toString(lastDay) + '日'
-        name = StringOperation.replace(employeeName, " ", "")
-
-        excel = PythonExcel()
+        excel = PythonExcelLib()
         excel.setPageA4
         excel.setOrientation()
 
@@ -332,8 +323,8 @@ class CostManageAutoOutputLogic(BaseLogic):
 
         totalRow = lastRow + 1
 
-        excel.setValueA1(col + StringOperation.toString(totalRow), '=SUM(' + col + '7:' + col + StringOperation.toString(lastRow) + ')')
-        excel.setValueA1(col + '3', '=' + col  + StringOperation.toString(totalRow))
+        excel.setValueA1(col + StringOperationLib.toString(totalRow), '=SUM(' + col + '7:' + col + StringOperationLib.toString(lastRow) + ')')
+        excel.setValueA1(col + '3', '=' + col  + StringOperationLib.toString(totalRow))
 
     '''
     体裁の調整(交通費精算書)
@@ -359,7 +350,7 @@ class CostManageAutoOutputLogic(BaseLogic):
         excel.mergeCell('G3:H4')
 
         #フォントサイズ
-        excel.changeSizeMulti('A7:H' + StringOperation.toString(lastRow), 9)
+        excel.changeSizeMulti('A7:H' + StringOperationLib.toString(lastRow), 9)
         excel.changeSize('G3', 18)
 
         #背景色
@@ -368,12 +359,12 @@ class CostManageAutoOutputLogic(BaseLogic):
         excel.changeCellBackColorMulti('G2:H2', 'DBDBDB')
 
         #罫線
-        excel.setBorderMulti('A6:H' + StringOperation.toString(lastRow + 1), 'hair')
+        excel.setBorderMulti('A6:H' + StringOperationLib.toString(lastRow + 1), 'hair')
         excel.setBorderMulti('A6:H6', 'thin', '000000', 'top')
-        excel.setBorderMulti('H6:H' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'right')
-        excel.setBorderMulti('A' + StringOperation.toString(lastRow + 1) + ':H' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'top')
-        excel.setBorderMulti('A' + StringOperation.toString(lastRow + 1) + ':H' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'bottom')
-        excel.setBorderMulti('A6:A' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'left')
+        excel.setBorderMulti('H6:H' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'right')
+        excel.setBorderMulti('A' + StringOperationLib.toString(lastRow + 1) + ':H' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'top')
+        excel.setBorderMulti('A' + StringOperationLib.toString(lastRow + 1) + ':H' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'bottom')
+        excel.setBorderMulti('A6:A' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'left')
 
         excel.setBorderMulti('A2:C4')
         excel.setBorderMulti('G2:H4')
@@ -383,7 +374,7 @@ class CostManageAutoOutputLogic(BaseLogic):
         excel.setAlignment('G2', 'top', 'center')
         excel.setAlignment('G3', 'center', 'center')
         excel.setAlignmentMulti('A6:H6', 'center', 'center')
-        excel.setAlignmentMulti('F7:F' + StringOperation.toString(lastRow), 'center', 'left', True)
+        excel.setAlignmentMulti('F7:F' + StringOperationLib.toString(lastRow), 'center', 'left', True)
 
         #フォーマット
         excel.setNumberFormat('G3', '#,##0')
@@ -410,7 +401,7 @@ class CostManageAutoOutputLogic(BaseLogic):
         excel.mergeCell('E3:F4')
 
         #フォントサイズ
-        excel.changeSizeMulti('A7:H' + StringOperation.toString(lastRow), 9)
+        excel.changeSizeMulti('A7:H' + StringOperationLib.toString(lastRow), 9)
         excel.changeSize('E3', 18)
 
         #背景色
@@ -419,12 +410,12 @@ class CostManageAutoOutputLogic(BaseLogic):
         excel.changeCellBackColorMulti('E2:F2', 'DBDBDB')
 
         #罫線
-        excel.setBorderMulti('A6:F' + StringOperation.toString(lastRow + 1), 'hair')
+        excel.setBorderMulti('A6:F' + StringOperationLib.toString(lastRow + 1), 'hair')
         excel.setBorderMulti('A6:F6', 'thin', '000000', 'top')
-        excel.setBorderMulti('F6:F' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'right')
-        excel.setBorderMulti('A' + StringOperation.toString(lastRow + 1) + ':F' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'top')
-        excel.setBorderMulti('A' + StringOperation.toString(lastRow + 1) + ':F' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'bottom')
-        excel.setBorderMulti('A6:A' + StringOperation.toString(lastRow + 1), 'thin', '000000', 'left')
+        excel.setBorderMulti('F6:F' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'right')
+        excel.setBorderMulti('A' + StringOperationLib.toString(lastRow + 1) + ':F' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'top')
+        excel.setBorderMulti('A' + StringOperationLib.toString(lastRow + 1) + ':F' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'bottom')
+        excel.setBorderMulti('A6:A' + StringOperationLib.toString(lastRow + 1), 'thin', '000000', 'left')
 
         excel.setBorderMulti('A2:C4')
         excel.setBorderMulti('E2:F4')
@@ -434,7 +425,7 @@ class CostManageAutoOutputLogic(BaseLogic):
         excel.setAlignment('E2', 'top', 'center')
         excel.setAlignment('E3', 'center', 'center')
         excel.setAlignmentMulti('A6:F6', 'center', 'center')
-        excel.setAlignmentMulti('D7:D' + StringOperation.toString(lastRow), 'center', 'left', True)
+        excel.setAlignmentMulti('D7:D' + StringOperationLib.toString(lastRow), 'center', 'left', True)
 
         #フォーマット
         excel.setNumberFormat('E3', '#,##0')
@@ -444,16 +435,15 @@ class CostManageAutoOutputLogic(BaseLogic):
     '''
     def copyReceiptFile(self, targetYm, loginId, toPath):
 
-        y = targetYm.split('-')[0]
-        m = targetYm.split('-')[1]
+        year, month = DateUtilLib.splitYm(targetYm)
 
-        ym = StringOperation.toString(y) + StringOperation.toString(m)
+        ym = StringOperationLib.toString(year) + StringOperationLib.toString(month)
 
-        fromPath = glob.glob(Config.getConf('RECEIPTinfo', 'receipt_file_path') + loginId + '/' + ym + '/' + '*')
+        fromPath = FileOperationLib.getFileList(Config.getConf('RECEIPTinfo', 'receipt_file_path') + loginId + '/' + ym + '/')
 
         for file in fromPath:
-            if os.path.basename(file) != '交通費精算書.xlsx' and os.path.basename(file) != '経費精算書.xlsx':
-                shutil.copyfile(file, toPath + os.path.basename(file))
+            if FileOperationLib.getFileName(file) != '交通費精算書.xlsx' and FileOperationLib.getFileName(file) != '経費精算書.xlsx':
+                FileOperationLib.copyFile(file, toPath + FileOperationLib.getFileName(file))
 
     '''
     送付用のZipファイルを作成する
@@ -463,19 +453,16 @@ class CostManageAutoOutputLogic(BaseLogic):
         dirPath = Config.getConf('CostManageAutoDLinfo', 'download_path')
         outputPath = Config.getConf('CostManageAutoDLinfo', 'output_path')
 
-        shutil.make_archive(outputPath + 'cost_manage', 'zip', root_dir=dirPath)
+        FileOperationLib.fileArchive('cost_manage', outputPath, dirPath)
 
     '''
     メール送信
     '''
     def sendCostManage(self, dt):
 
-        y = int(dt.split('-')[0])
-        m = int(dt.split('-')[1])
+        ym = DateUtilLib.getYmFormatJapanese(dt)
 
-        ym = StringOperation.toString(y) + '年' + StringOperation.toString(m) + '月'
-
-        mail = SendMail()
+        mail = SendMailLib()
 
         mail.setMailFrom(Config.getConf('MAILinfo', 'admin_mail_from'))
         mail.setMailTo(Config.getConf('CostManageAutoDLinfo', 'kanri_mail'))

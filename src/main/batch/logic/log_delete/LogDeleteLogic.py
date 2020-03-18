@@ -4,13 +4,11 @@
 
 @author: takanori_gozu
 '''
-import glob
-import os
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.base.Config import Config
-from src.main.batch.lib.string.StringOperation import StringOperation
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
+from src.main.batch.lib.file.FileOperationLib import FileOperationLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class LogDeleteLogic(BaseLogic):
 
@@ -38,11 +36,11 @@ class LogDeleteLogic(BaseLogic):
 
         count = 0
 
-        for i in glob.glob(dirPath + '*' + targetDate + '*.log'):
-            os.remove(i)
-            count+=1
+        for logPath in FileOperationLib.getFileList(dirPath, '*' + targetDate + '*.log'):
+            FileOperationLib.deleteFile(logPath)
+            count += 1
 
-        self.writeLog('ログ削除件数:' + StringOperation.toString(count) + '件')
+        self.writeLog('ログ削除件数:' + StringOperationLib.toString(count) + '件')
 
         return
 
@@ -50,8 +48,5 @@ class LogDeleteLogic(BaseLogic):
     削除対象日を取得(60日前)
     '''
     def getTargetDate(self, dt, interval):
-        date = dt + ' 00:00:00'
-        bdt = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-
-        #文字列で返す
-        return StringOperation.toString((bdt - relativedelta(days=interval)).date())
+        date = DateUtilLib.toDateTimeDate(dt)
+        return StringOperationLib.toString(DateUtilLib.getDateIntervalDay(date, -interval))

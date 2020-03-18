@@ -4,18 +4,16 @@
 
 @author: takanori_gozu
 '''
-import os.path
-import shutil
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.base.Config import Config
 from src.main.batch.dao.EmployeeDao import EmployeeDao
-from src.main.batch.lib.string.StringOperation import StringOperation
 from src.main.batch.dao.WeeklyReportDao import WeeklyReportDao
 from src.main.batch.dao.TimeRecordDao import TimeRecordDao
 from src.main.batch.dao.ExpensesDao import ExpensesDao
 from src.main.batch.dao.TimeRecordConfigDao import TimeRecordConfigDao
+from src.main.batch.lib.date.DateUtilLib import DateUtilLib
+from src.main.batch.lib.file.FileOperationLib import FileOperationLib
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
 
 class RetirementDataDeleteLogic(BaseLogic):
 
@@ -64,11 +62,9 @@ class RetirementDataDeleteLogic(BaseLogic):
     削除基準日を取得する(3年保持)
     '''
     def getStandardDate(self, dt):
-        date = dt + ' 00:00:00'
-        bdt = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-
+        date = DateUtilLib.toDateTimeDate(dt)
         #文字列で返す
-        return StringOperation.toString((bdt - relativedelta(years=3)).date())
+        return StringOperationLib.toString(DateUtilLib.getDateIntervalYear(date, -3))
 
     '''
     削除対象の社員IDを取得
@@ -91,7 +87,7 @@ class RetirementDataDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('週報データ削除対象件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('週報データ削除対象件数：' + StringOperationLib.toString(count) + '件')
         dao.doDelete()
 
         return
@@ -106,7 +102,7 @@ class RetirementDataDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('勤怠データ削除対象件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('勤怠データ削除対象件数：' + StringOperationLib.toString(count) + '件')
         dao.doDelete()
 
         return
@@ -121,7 +117,7 @@ class RetirementDataDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('勤怠設定データ削除対象件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('勤怠設定データ削除対象件数：' + StringOperationLib.toString(count) + '件')
         dao.doDelete()
 
         return
@@ -136,7 +132,7 @@ class RetirementDataDeleteLogic(BaseLogic):
 
         count = dao.doCount()
 
-        self.writeLog('勤怠データ削除対象件数：' + StringOperation.toString(count) + '件')
+        self.writeLog('勤怠データ削除対象件数：' + StringOperationLib.toString(count) + '件')
         dao.doDelete()
 
         #領収書ファイル
@@ -154,17 +150,17 @@ class RetirementDataDeleteLogic(BaseLogic):
 
         eList = eDao.doSelectCol(EmployeeDao.COL_LOGIN_ID)
 
-        self.writeLog('ディレクトリ削除開始:' + StringOperation.toString(datetime.now().strftime("%Y-%m-%d")))
+        self.writeLog('ディレクトリ削除開始:' + StringOperationLib.toString(DateUtilLib.getToday()))
 
         for i in range(len(eList)):
-            user_id = StringOperation.toString(eList[i])
+            user_id = StringOperationLib.toString(eList[i])
             dirPath = Config.getConf('RECEIPTinfo', 'receipt_file_path') + user_id
             #年月は関係なし(ユーザーIDのディレクトリごとまるっと削除する)
-            if os.path.isdir(dirPath):
-                shutil.rmtree(dirPath)
+            if FileOperationLib.existDir(dirPath):
+                FileOperationLib.deleteDir(dirPath)
                 self.writeLog('ディレクトリ削除 ユーザーID: ' + user_id)
 
-        self.writeLog('ディレクトリ削除完了:' + StringOperation.toString(datetime.now().strftime("%Y-%m-%d")))
+        self.writeLog('ディレクトリ削除完了:' + StringOperationLib.toString(DateUtilLib.getToday()))
 
     '''
     社員マスタデータを削除

@@ -1,6 +1,6 @@
 # coding: UTF-8
 '''
-SendMail
+SendMailLib
 メール送信ライブラリ
 
 @author: takanori_gozu
@@ -12,9 +12,10 @@ from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from src.main.batch.base.Config import Config
-from src.main.batch.lib.string.StringOperation import StringOperation
+from src.main.batch.lib.string.StringOperationLib import StringOperationLib
+import traceback
 
-class SendMail:
+class SendMailLib:
 
     message = None
 
@@ -99,7 +100,8 @@ class SendMail:
     '''
     def setErrMailText(self, appName, e):
         msg = appName + u'にてシステムエラーが発生しました。\r\n\r\n'
-        msg += StringOperation.toString(e)
+        msg += StringOperationLib.toString(e)
+        msg += StringOperationLib.toString(traceback.format_exc())
         self.mailText = msg
 
     '''

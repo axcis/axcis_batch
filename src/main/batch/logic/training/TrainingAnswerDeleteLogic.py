@@ -6,7 +6,6 @@
 '''
 from src.main.batch.base.BaseLogic import BaseLogic
 from src.main.batch.dao.TrainingQuestionAnswerDao import TrainingQuestionAnswerDao
-from src.main.batch.lib.string.StringOperation import StringOperation
 
 class TrainingAnswerDeleteLogic(BaseLogic):
 
@@ -29,11 +28,11 @@ class TrainingAnswerDeleteLogic(BaseLogic):
 
         dao = TrainingQuestionAnswerDao(self.db)
 
-        self.writeLog('データ削除実施日：' + StringOperation.toString(date))
+        self.writeLog('データ削除実施日：' + date)
 
-        dao.addWhereStr(TrainingQuestionAnswerDao.COL_ANSWER_DATE, StringOperation.toString(date), TrainingQuestionAnswerDao.COMP_LESS)
+        dao.addWhereStr(TrainingQuestionAnswerDao.COL_ANSWER_DATE, date, TrainingQuestionAnswerDao.COMP_LESS)
         if type != '':
-            dao.addWhereStr(TrainingQuestionAnswerDao.COL_TRAINING_TYPE, StringOperation.toString(type))
+            dao.addWhereStr(TrainingQuestionAnswerDao.COL_TRAINING_TYPE, type)
 
         dao.doDelete()
 
