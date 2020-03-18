@@ -266,6 +266,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     '''
     def makeExcel(self, dt, recordMapList, totalList, name):
 
+        dt = StringOperationLib.mid(dt, 1, 7)
         ym = DateUtilLib.getYmFormatJapanese(dt)
         name = StringOperationLib.replace(name, " ", "")
 
@@ -476,6 +477,7 @@ class TimeRecordAutoOutputLogic(BaseLogic):
     '''
     def sendTimeSheet(self, dt):
 
+        dt = StringOperationLib.mid(dt, 1, 7)
         ym = DateUtilLib.getYmFormatJapanese(dt)
 
         mail = SendMailLib()
