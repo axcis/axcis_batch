@@ -182,7 +182,6 @@ class CostManageAutoOutputLogic(BaseLogic):
 
         excel.rename(trafficName)
 
-
         #タイトル等共通部分
         self.setCommon(excel, ym, ymd, name, trafficName)
 
@@ -442,8 +441,9 @@ class CostManageAutoOutputLogic(BaseLogic):
         fromPath = FileOperationLib.getFileList(Config.getConf('RECEIPTinfo', 'receipt_file_path') + loginId + '/' + ym + '/')
 
         for file in fromPath:
-            if FileOperationLib.getFileName(file) != '交通費精算書.xlsx' and FileOperationLib.getFileName(file) != '経費精算書.xlsx':
-                FileOperationLib.copyFile(file, toPath + FileOperationLib.getFileName(file))
+            if not(StringOperationLib.match(FileOperationLib.getFileName(file), '*.xlsx')):
+                fileName = FileOperationLib.getFileName(file).encode('utf-8', 'surrogateescape').decode('SJIS', 'surrogateescape')
+                FileOperationLib.copyFile(file, toPath +  fileName)
 
     '''
     送付用のZipファイルを作成する
