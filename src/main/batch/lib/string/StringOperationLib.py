@@ -5,6 +5,7 @@ StringOperationLib
 
 @author: takanori_gozu
 '''
+import fnmatch
 
 class StringOperationLib:
 
@@ -42,6 +43,13 @@ class StringOperationLib:
     @staticmethod
     def replace(text, before, after):
         return text.replace(before, after)
+
+    '''
+    Match関数
+    '''
+    @staticmethod
+    def match(target, pattern):
+        return fnmatch.fnmatch(target, pattern)
 
     '''
     文字列に変換して返す
